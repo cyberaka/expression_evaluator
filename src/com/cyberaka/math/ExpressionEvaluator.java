@@ -1,5 +1,6 @@
 package com.cyberaka.math;
 
+import java.util.Iterator;
 import java.util.Stack;
 
 public class ExpressionEvaluator {
@@ -9,7 +10,7 @@ public class ExpressionEvaluator {
 	 */
 	public static void main(String[] args) {
 		ExpressionEvaluator eEval = new ExpressionEvaluator();
-		String expression = "1+2+3";
+		String expression = "10.1+20+30";
 		double value = eEval.eval(expression);
 		System.out.println(expression = " = " + value);
 	}
@@ -44,6 +45,7 @@ public class ExpressionEvaluator {
 			case '7':
 			case '8':
 			case '9':
+			case '.':
 				sb.append(ch);
 				break;
 			default:
@@ -63,6 +65,7 @@ public class ExpressionEvaluator {
 		int length = exp.length();
 		int bracketDepth = 0;
 		int bracketStartIndex = 0;
+		boolean lastEntryOperand = false;
 		for (int i=0; i<length; i++) {
 			char ch = exp.charAt(i);
 			if (ch == '(') {
@@ -70,16 +73,64 @@ public class ExpressionEvaluator {
 					bracketStartIndex = i;
 				}
 				bracketDepth++;
+				continue;
 			}
 			if (ch == ')') {
 				bracketDepth--;
 				if (bracketDepth == 0) {
-					double value = evaluate(exp.substring(bracketStartIndex, i));
+					double value = evaluate(exp.substring(bracketStartIndex + 1, i - 1));
 					stack.push("" + value);
+					lastEntryOperand = false;
 				}
+				continue;
+			}
+			if (ch == '-' || ch == '+' || ch == '/' || ch == '*') {
+				lastEntryOperand = true;
+				stack.push("" + ch);
+			} else {
+				if (lastEntryOperand || stack.isEmpty()) {
+					stack.push("" + ch);
+				} else {
+					stack.push(stack.pop() + ch);
+				}
+				lastEntryOperand = false;
 			}
 		}
-		return 0;
+		int size = stack.size();
+		Iterator<String> itr = stack.iterator();
+		System.out.println("Stack Dump============");
+		while (itr.hasNext()) {
+			String entry = itr.next();
+			System.out.print(entry + " ");
+		}
+		System.out.println("\n======================");
+		double value = 0;
+		char op = 0;
+		for (int i=0; i<size; i+=2) {
+			double temp = Double.parseDouble(stack.get(i));
+			if (op == 0) {
+				value = temp;
+			} else {
+				switch(op) {
+				case '+':
+					value += temp;
+					break;
+				case '-':
+					value -= temp;
+					break;
+				case '/':
+					value /= temp;
+					break;
+				case '*':
+					value *= temp;
+					break;
+				}
+			}
+			if (i < stack.size() - 1) {
+				op = stack.get(i + 1).charAt(0);
+			}
+		}
+		return value;
 	}
 
 }
